@@ -65,8 +65,8 @@ void print_data(stack_s* stk, int STATUS);
         printf("\n" CHANGE_ON BOLD WITH LIGHT_RED TEXT_COLOR "StackDump() from %s at %s:%d\n" RESET,\
         __func__, file, line);                                                                      \
         StackDump(stk, STATUS);                                                                     \
+        return (StackErr_t) STATUS;                                                                 \
     }
-        //return (StackErr_t) STATUS;
 
 StackErr_t StackCtor_(stack_s* stk, size_t capacity, const char* file, int line)
 {
@@ -132,19 +132,25 @@ int StackVerify(stack_s* stk, int STATUS) // todo add poisons
 {
     if (stk == NULL) {
        STATUS |= BAD_STK_PTR;
-        return STATUS;
+       return STATUS;
     }
-    if (stk->data == NULL)                        STATUS |= BAD_DATA_PTR;
     if (stk->capacity > MAXSIZE)                  STATUS |= BAD_STK_CAPACITY;
     if (stk->size > stk->capacity + 1)            STATUS |= BAD_SIZE_R;
     if (stk->size < 1)                            STATUS |= BAD_SIZE_L;
-    if (stk->data[0] != L_CANARY)                 STATUS |= LEFT_CANARY_DEAD;
-    if (stk->data[stk->capacity + 1] != R_CANARY) STATUS |= RIGHT_CANARY_DEAD;
+    if (stk->data == NULL)                        STATUS |= BAD_DATA_PTR;
+    else {
+        if (stk->data[0] != L_CANARY)                 STATUS |= LEFT_CANARY_DEAD;
+        if (stk->data[stk->capacity + 1] != R_CANARY) STATUS |= RIGHT_CANARY_DEAD;
+    }
     return STATUS;
 }
 
 void StackDump(stack_s* stk, int STATUS)
 {
+    if (stk == NULL) {
+        STATUS |= BAD_STK_PTR;
+        return;
+    }
     if (STATUS & ALL_OK) {
         printf(CHANGE_ON BOLD WITH GREEN TEXT_COLOR "ALL_OK(%d) ", ALL_OK);
         return;
